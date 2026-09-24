@@ -69,11 +69,12 @@ franchiseRouter.get(
   '/:userId',
   authRouter.authenticateToken,
   asyncHandler(async (req, res) => {
-    let result = [];
     const userId = Number(req.params.userId);
-    if (req.user.id === userId || req.user.isRole(Role.Admin)) {
-      result = await DB.getUserFranchises(userId);
+    const user = req.user;
+    if (user.id !== userId && !user.isRole(Role.Admin)) {
+      return res.status(403).json({ message: 'unauthorized' });
     }
+    const result = await DB.getUserFranchises(userId);
 
     res.json(result);
   })
