@@ -13,6 +13,8 @@ let admin = {
   roles: [{ role: Role.Admin }],
 };
 
+let secondFranchise = { name: "second franchise", admins: [admin] };
+
 
 beforeAll(async () => {
   testUser.email = Math.random().toString(36).substring(2, 12) + "@test.com";
@@ -20,8 +22,9 @@ beforeAll(async () => {
   testUserAuthToken = registerRes.body.token;
   testUserId = registerRes.body.user.id;
 
-  await createFranchise(testFranchise);
   await createAdminUser(admin);
+  testFranchise = await createFranchise(testFranchise);
+  secondFranchise = await createFranchise(secondFranchise);
 });
 
 async function createFranchise(franchise) {
@@ -36,7 +39,7 @@ test("get franchises", async () => {
   const getFranchisesRes = await request(app)
     .get(`/api/franchise?page=0&limit=10&name=*`)
     .send();
-  expect(getFranchisesRes.body.franchises.length).toBe(1);
+  expect(getFranchisesRes.body.franchises.length).toBe(2);
 });
 
 test("get user franchises", async () => {
@@ -58,7 +61,6 @@ test("get user franchises bad user", async () => {
 test("create franchise", async () => {
   const loginRes = await request(app).put("/api/auth").send(admin);
   const adminAuthToken = loginRes.body.token;
-console.log(adminAuthToken)
   const newFranchise = {
     name: "new franchise",
     admins: [{ email: `${testUser.email}` }],
@@ -69,3 +71,37 @@ console.log(adminAuthToken)
     .send(newFranchise);
   expect(createFranchiseRes.status).toBe(200);
 });
+
+test('create franchise not admin', async () => {
+  const newFranchise = {
+    name: "new franchise",
+    admins: [{ email: `${testUser.email}` }],
+  };
+  const createFranchiseRes = await request(app)
+    .post("/api/franchise")
+    .set("Authorization", `Bearer ${testUserAuthToken}`)
+    .send(newFranchise);
+  expect(createFranchiseRes.status).toBe(403);
+});
+
+test('delete franchise', async () => {
+  let getFranchisesRes = await request(app)
+    .get(`/api/franchise?page=0&limit=10&name=*`)
+    .send();
+  const currentLength = getFranchisesRes.body.franchises.length;
+  const deleteRes = await request(app).delete(`/api/franchise/${secondFranchise.id}`);
+  expect(deleteRes.status).toBe(200);
+
+  getFranchisesRes = await request(app)
+  .get(`/api/franchise?page=0&limit=10&name=*`)
+  .send();
+
+  const newLength = getFranchisesRes.body.franchises.length;
+  expect(newLength).toBe((currentLength - 1))
+})
+
+test('create store', async () => {
+  const testStore = {franchiseId: testFranchise.id, name:"TEST STORE"}
+  const createRes = await request(app).post(`/api/franchise/${testFranchise.id}/store`).set('Authorization', `Bearer ${testUserAuthToken}`).send(testStore);
+  expect(createRes.body.name).toBe(testStore.name)
+})

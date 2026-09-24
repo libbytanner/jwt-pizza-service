@@ -6,5 +6,6 @@
       "lines": 80
     }
   },
-  "setupFilesAfterEnv": ["<rootDir>/src/tests/setup.js"]
+  "setupFilesAfterEnv": ["<rootDir>/src/tests/setup.js"],
+  "maxWorkers": 1
 }
