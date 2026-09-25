@@ -12,21 +12,35 @@ let admin = {
   roles: [{ role: Role.Admin }],
 };
 
-const testMenuItem = {
+let testMenuItem = {
   title: "Student",
   description: "No topping, no sauce, just carbs",
   image: "pizza9.png",
   price: 0.0001,
+  menuId: 0
 };
+
+let testStore = {
+  franchiseId: 0,
+  name: "Test Store",  
+}
+
+if (process.env.VSCODE_INSPECTOR_OPTIONS) {
+  jest.setTimeout(60 * 1000 * 5); // 5 minutes
+}
+
 
 beforeAll(async () => {
   testUser.email = Math.random().toString(36).substring(2, 12) + "@test.com";
   const registerRes = await request(app).post("/api/auth").send(testUser);
   testUserAuthToken = registerRes.body.token;
 
-  await createFranchise(testFranchise);
+  testFranchise = await createFranchise(testFranchise);
+  testStore.franchiseId = testFranchise.id
   await createAdminUser(admin);
-  await createMenuItem(testMenuItem);
+  testMenuItem = await createMenuItem(testMenuItem);
+  testMenuItem.menuId = testMenuItem.id
+  testStore = await createStore(testStore)
 });
 
 async function createFranchise(franchise) {
@@ -39,6 +53,10 @@ async function createAdminUser(admin) {
 
 async function createMenuItem(menuItem) {
   return await DB.addMenuItem(menuItem);
+}
+
+async function createStore(store) {
+  return await DB.createStore(store.franchiseId, store)
 }
 
 test("get menu", async () => {
@@ -73,4 +91,12 @@ test('add menu item not admin', async () => {
   const addRes = await request(app).put('/api/order/menu').set('Authorization', `Bearer ${testUserAuthToken}`).send(testItem);
     expect(addRes.status).toBe(403)
 
+})
+
+test('create order', async () => {
+  const testOrder = {franchiseId: testFranchise.id, storeId: testStore.id, items: [testMenuItem]}
+  const createRes = await request(app).post('/api/order').set('Authorization', `Bearer ${testUserAuthToken}`).send(testOrder)
+  expect(createRes.status).toBe(200);
+  const getRes = await request(app).get('/api/order').set("Authorization", `Bearer ${testUserAuthToken}`).send();
+  expect(getRes.body.orders.length).toBe(1)
 })
