@@ -79,6 +79,29 @@ test("list users", async () => {
   expect(listUsersRes.status).toBe(200);
 });
 
+test("list users pagination", async () => {
+  const loginRes = await request(app).put("/api/auth").send(admin);
+  const adminToken = loginRes.body.token;
+  const listUsersRes = await request(app)
+    .get("/api/user?page=1&limit=1")
+    .set("Authorization", "Bearer " + adminToken);
+  expect(listUsersRes.status).toBe(200);
+  expect(listUsersRes.body.users.length).toBe(1);
+});
+
+test("list users filter", async () => {
+  const uniqueUser = {name: 'Unique user', email: "email@email.com", password: 'a', roles: [Role.Diner]}
+  await request(app).post("/api/auth").send(uniqueUser);
+  const loginRes = await request(app).put("/api/auth").send(admin);
+  const adminToken = loginRes.body.token;
+  const listUsersRes = await request(app)
+    .get("/api/user?name=Unique")
+    .set("Authorization", "Bearer " + adminToken);
+  expect(listUsersRes.status).toBe(200);
+  expect(listUsersRes.body.users.length).toBe(1);
+});
+
+
 // async function registerUser(service) {
 //   const testUser = {
 //     name: "pizza diner",

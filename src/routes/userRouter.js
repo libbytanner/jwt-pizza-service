@@ -107,12 +107,15 @@ userRouter.get(
     const nameFilter = req.params.name
 
     const {users} = await DB.getUserList(nameFilter);
-    let filtered;
-    if (page && limit) {
-      filtered = users.filter(user => user.name.toLowercase().includes(nameFilter.toLowercase())).slice(page * limit, limit)
-    } else {
-      filtered = users
+    let filtered = users;
+    if (nameFilter) {
+      filtered = users.filter(user => user.name.toLowercase().includes(nameFilter.toLowercase()))
     }
+    if (page && limit) {
+      filtered = filtered.slice(page * limit, limit)
+    }
+    console.log(nameFilter);
+    console.log("FILTERED: ", filtered)
 
     res.json({users: filtered});
   }),
