@@ -29,6 +29,17 @@ class DB {
     }
   }
 
+  async getUserList() {
+    const connection = await this.getConnection();
+    try {
+      const users = await this.query(connection, `SELECT * FROM user`);
+      return {users};
+    } finally {
+      connection.end();
+    }
+
+  }
+
   async addUser(user) {
     const connection = await this.getConnection();
     try {
