@@ -102,20 +102,20 @@ userRouter.get(
       res.status(401).json({message: "Unauthorized"});
     }
 
-    const page = Number(req.params.page);
-    const limit = Number(req.params.limit);
-    const nameFilter = req.params.name
+    const page = Number(req.query.page);
+    const limit = Number(req.query.limit);
+    const nameFilter = req.query.name
 
-    const {users} = await DB.getUserList(nameFilter);
+
+
+    const {users} = await DB.getUserList();
     let filtered = users;
-    if (nameFilter) {
-      filtered = users.filter(user => user.name.toLowercase().includes(nameFilter.toLowercase()))
+    if (nameFilter && nameFilter !== '*') {
+      filtered = users.filter(user => user.name.toLowerCase().includes(nameFilter.toLowerCase()))
     }
     if (page && limit) {
-      filtered = filtered.slice(page * limit, limit)
+      filtered = filtered.slice(page - 1 * limit, limit)
     }
-    console.log(nameFilter);
-    console.log("FILTERED: ", filtered)
 
     res.json({users: filtered});
   }),
