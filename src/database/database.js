@@ -39,17 +39,20 @@ class DB {
       let users = await this.query(
         connection,
         `SELECT * FROM user
-      `);
+      `
+      );
 
-      users = await Promise.all(users.map(async user => {
-        const roleResult = await this.query(
-          connection,
-          `SELECT role FROM userRole WHERE userId=?`,
-          [user.id]
-        );
-        const roles = roleResult.map((r) => r.role);
-        return {...user, roles}
-      }))
+      users = await Promise.all(
+        users.map(async (user) => {
+          const roleResult = await this.query(
+            connection,
+            `SELECT role FROM userRole WHERE userId=?`,
+            [user.id]
+          );
+          const roles = roleResult.map((r) => r.role);
+          return { ...user, roles };
+        })
+      );
 
       return { users };
     } finally {
@@ -95,6 +98,18 @@ class DB {
         }
       }
       return { ...user, id: userId, password: undefined };
+    } finally {
+      connection.end();
+    }
+  }
+
+  async deleteUser(userId) {
+    const connection = await this.getConnection();
+    try {
+      await this.query(connection, `DELETE FROM userRole WHERE userId=?`, [
+        userId,
+      ]);
+      await this.query(connection, `DELETE FROM user WHERE id=?`, [userId]);
     } finally {
       connection.end();
     }

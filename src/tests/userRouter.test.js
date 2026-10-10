@@ -2,7 +2,6 @@ const request = require("supertest");
 const app = require("../service");
 const { DB, Role } = require("../database/database.js");
 
-
 const testUser = { name: "pizza diner", email: "reg@test.com", password: "a" };
 let testUserAuthToken;
 
@@ -12,7 +11,6 @@ let admin = {
   password: "admin",
   roles: [{ role: Role.Admin }],
 };
-
 
 beforeAll(async () => {
   testUser.email = Math.random().toString(36).substring(2, 12) + "@test.com";
@@ -90,7 +88,12 @@ test("list users pagination", async () => {
 });
 
 test("list users filter", async () => {
-  const uniqueUser = {name: 'Unique user', email: "email@email.com", password: 'a', roles: [Role.Diner]}
+  const uniqueUser = {
+    name: "Unique user",
+    email: "email@email.com",
+    password: "a",
+    roles: [Role.Diner],
+  };
   await request(app).post("/api/auth").send(uniqueUser);
   const loginRes = await request(app).put("/api/auth").send(admin);
   const adminToken = loginRes.body.token;
@@ -101,6 +104,26 @@ test("list users filter", async () => {
   expect(listUsersRes.body.users.length).toBe(1);
 });
 
+test("delete user", async () => {
+  const loginRes = await request(app).put("/api/auth").send(admin);
+  const adminToken = loginRes.body.token;
+  const listUsersRes = await request(app)
+    .get("/api/user?name=Unique")
+    .set("Authorization", "Bearer " + adminToken);
+
+  const userId = listUsersRes.body.users[0].id
+
+  const deleteRes = await request(app)
+    .delete(`/api/user/${userId}`)
+    .set("Authorization", "Bearer " + adminToken);
+  expect(deleteRes.status).toBe(200);
+  const newListRes = await request(app)
+    .get("/api/user?name=Unique")
+    .set("Authorization", "Bearer " + adminToken);
+
+  expect(listUsersRes.status).toBe(200);
+  expect(newListRes.body.users.length).toBe(0);
+});
 
 // async function registerUser(service) {
 //   const testUser = {
