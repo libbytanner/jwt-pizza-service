@@ -83,7 +83,7 @@ test("list users pagination", async () => {
   const loginRes = await request(app).put("/api/auth").send(admin);
   const adminToken = loginRes.body.token;
   const listUsersRes = await request(app)
-    .get("/api/user?page=1&limit=1&name=*")
+    .get("/api/user?page=0&limit=1&name=*")
     .set("Authorization", "Bearer " + adminToken);
   expect(listUsersRes.status).toBe(200);
   expect(listUsersRes.body.users.length).toBe(1);

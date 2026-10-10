@@ -92,33 +92,38 @@ userRouter.delete(
 
 // listUsers
 userRouter.get(
-  // page=1&limit=10&name=*
-  '/',
+  "/",
   authRouter.authenticateToken,
-  
+
   asyncHandler(async (req, res) => {
     const user = req.user;
     if (!user.isRole(Role.Admin)) {
-      res.status(401).json({message: "Unauthorized"});
+      res.status(401).json({ message: "Unauthorized" });
     }
 
     const page = Number(req.query.page);
     const limit = Number(req.query.limit);
-    const nameFilter = req.query.name
+    const nameFilter = req.query.name;
 
-
-
-    const {users} = await DB.getUserList();
+    const { users } = await DB.getUserList();
     let filtered = users;
-    if (nameFilter && nameFilter !== '*') {
-      filtered = users.filter(user => user.name.toLowerCase().includes(nameFilter.toLowerCase()))
+    if (nameFilter && nameFilter !== "*") {
+      filtered = users.filter((user) =>
+        user.name.toLowerCase().includes(nameFilter.toLowerCase())
+      );
     }
-    if (page && limit) {
-      filtered = filtered.slice(page - 1 * limit, limit)
+    if (limit) {
+      filtered = filtered.slice(page * limit, limit);
     }
+    filtered = filtered.map((user) => ({
+      id: user.id,
+      name: user.name,
+      email: user.email,
+      roles: user.roles,
+    }));
 
-    res.json({users: filtered});
-  }),
+    res.json({ users: filtered });
+  })
 );
 
 module.exports = userRouter;
