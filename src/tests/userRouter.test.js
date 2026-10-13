@@ -84,8 +84,14 @@ test("list users pagination", async () => {
     .get("/api/user?page=0&limit=1&name=*")
     .set("Authorization", "Bearer " + adminToken);
   expect(listUsersRes.status).toBe(200);
-  expect(listUsersRes.body.users.length).toBe(1)
+  expect(listUsersRes.body.users.length).toBe(1);
   expect(listUsersRes.body.more).toBe(true);
+  const secondPageRes = await request(app)
+    .get("/api/user?page=1&limit=1&name=*")
+    .set("Authorization", "Bearer " + adminToken);
+  expect(secondPageRes.status).toBe(200);
+  expect(secondPageRes.body.users.length).toBe(1);
+  expect(secondPageRes.body.more).toBe(false);
 });
 
 test("list users filter", async () => {
@@ -112,7 +118,7 @@ test("delete user", async () => {
     .get("/api/user?name=Unique")
     .set("Authorization", "Bearer " + adminToken);
 
-  const userId = listUsersRes.body.users[0].id
+  const userId = listUsersRes.body.users[0].id;
 
   const deleteRes = await request(app)
     .delete(`/api/user/${userId}`)

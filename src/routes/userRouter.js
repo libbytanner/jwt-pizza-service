@@ -127,7 +127,7 @@ userRouter.get(
     const total = filtered.length;
 
     if (limit) {
-      filtered = filtered.slice(page * limit, limit);
+      filtered = filtered.slice(page * limit, page * limit + limit);
     }
     filtered = filtered.map((user) => ({
       id: user.id,
@@ -136,7 +136,7 @@ userRouter.get(
       roles: user.roles,
     }));
     let more = false
-    if (filtered.length < total) {
+    if (page * limit + limit < total) {
       more = true
     }
 
