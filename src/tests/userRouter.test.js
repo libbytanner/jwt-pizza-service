@@ -127,7 +127,7 @@ test("list users pagination", async () => {
   expect(listUsersRes.body.users.length).toBe(1);
   expect(listUsersRes.body.more).toBe(true);
   const secondPageRes = await request(app)
-    .get("/api/user?page=1&limit=1&name=*")
+    .get("/api/user?page=0&limit=1&name=admin")
     .set("Authorization", "Bearer " + adminToken);
   expect(secondPageRes.status).toBe(200);
   expect(secondPageRes.body.users.length).toBe(1);
