@@ -53,7 +53,6 @@ class DB {
           return { ...user, roles };
         })
       );
-
       return { users };
     } finally {
       connection.end();

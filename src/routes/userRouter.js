@@ -124,6 +124,8 @@ userRouter.get(
         user.name.toLowerCase().includes(nameFilter.toLowerCase())
       );
     }
+    const total = filtered.length;
+
     if (limit) {
       filtered = filtered.slice(page * limit, limit);
     }
@@ -133,8 +135,12 @@ userRouter.get(
       email: user.email,
       roles: user.roles,
     }));
+    let more = false
+    if (filtered.length < total) {
+      more = true
+    }
 
-    res.json({ users: filtered });
+    res.json({ users: filtered, more });
   })
 );
 

@@ -84,7 +84,8 @@ test("list users pagination", async () => {
     .get("/api/user?page=0&limit=1&name=*")
     .set("Authorization", "Bearer " + adminToken);
   expect(listUsersRes.status).toBe(200);
-  expect(listUsersRes.body.users.length).toBe(1);
+  expect(listUsersRes.body.users.length).toBe(1)
+  expect(listUsersRes.body.more).toBe(true);
 });
 
 test("list users filter", async () => {
