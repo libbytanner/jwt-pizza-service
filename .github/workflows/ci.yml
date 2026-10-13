@@ -57,9 +57,6 @@ jobs:
             },
           };" > src/config.js
           
-    #   - name: Populate Database
-    #     run: ./generateData
-
       - name: Tests
         run: npm test
 
