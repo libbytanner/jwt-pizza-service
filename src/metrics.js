@@ -1,6 +1,10 @@
 const os = require("os");
 const config = require("./config");
 
+if (process.env.NODE_ENV === "test") {
+    return;
+  }
+
 const requests = {};
 
 function requestTracker(req, res, next) {
