@@ -1,5 +1,5 @@
 const os = require("os");
-// const config = require("./config");
+const config = require("./config");
 
 const requests = {};
 
@@ -25,92 +25,92 @@ function getMemoryUsagePercentage() {
 }
 
 // function sendMetricsPeriodically(period) {
-// setInterval(() => {
-//   try {
-//     const metrics = [];
-//     metrics.push(createMetric("httpRequests", requests, "1", "sum", "asInt"));
+setInterval(() => {
+  try {
+    const metrics = [];
+    metrics.push(createMetric("httpRequests", requests, "1", "sum", "asInt"));
 
-//     metrics.push(
-//       createMetric("cpuUsage", getCpuUsagePercentage(), "1", "sum", "asInt")
-//     );
-//     metrics.push(createMetric("memoryUsage", getMemoryUsagePercentage()));
-//     sendToGrafana(metrics);
-//   } catch (error) {
-//     console.log("Error sending metrics", error);
-//   }
-// }, 60000);
-//   }
-
-// function createMetric(
-//   metricName,
-//   metricValue,
-//   metricUnit,
-//   metricType,
-//   valueType,
-//   attributes
-// ) {
-//   attributes = { ...attributes, source: config.metrics.source };
-
-//   const metric = {
-//     name: metricName,
-//     unit: metricUnit,
-//     [metricType]: {
-//       dataPoints: [
-//         {
-//           [valueType]: metricValue,
-//           timeUnixNano: Date.now() * 1000000,
-//           attributes: [],
-//         },
-//       ],
-//     },
-//   };
-
-//   Object.keys(attributes).forEach((key) => {
-//     metric[metricType].dataPoints[0].attributes.push({
-//       key: key,
-//       value: { stringValue: attributes[key] },
-//     });
-//   });
-
-//   if (metricType === "sum") {
-//     metric[metricType].aggregationTemporality =
-//       "AGGREGATION_TEMPORALITY_CUMULATIVE";
-//     metric[metricType].isMonotonic = true;
+    metrics.push(
+      createMetric("cpuUsage", getCpuUsagePercentage(), "1", "sum", "asInt")
+    );
+    metrics.push(createMetric("memoryUsage", getMemoryUsagePercentage()));
+    sendToGrafana(metrics);
+  } catch (error) {
+    console.log("Error sending metrics", error);
+  }
+}, 60000);
 //   }
 
-//   return metric;
-// }
+function createMetric(
+  metricName,
+  metricValue,
+  metricUnit,
+  metricType,
+  valueType,
+  attributes
+) {
+  attributes = { ...attributes, source: config.metrics.source };
 
-// function sendToGrafana(metrics) {
-//   const body = {
-//     resourceMetrics: [
-//       {
-//         scopeMetrics: [
-//           {
-//             metrics,
-//           },
-//         ],
-//       },
-//     ],
-//   };
+  const metric = {
+    name: metricName,
+    unit: metricUnit,
+    [metricType]: {
+      dataPoints: [
+        {
+          [valueType]: metricValue,
+          timeUnixNano: Date.now() * 1000000,
+          attributes: [],
+        },
+      ],
+    },
+  };
 
-//   fetch(`${config.metrics.endpointUrl}`, {
-//     method: "POST",
-//     body: JSON.stringify(body),
-//     headers: {
-//       Authorization: `Bearer ${config.metrics.accountId}:${config.metrics.apiKey}`,
-//       "Content-Type": "application/json",
-//     },
-//   })
-//     .then((response) => {
-//       if (!response.ok) {
-//         throw new Error(`HTTP status: ${response.status}`);
-//       }
-//     })
-//     .catch((error) => {
-//       console.error("Error pushing metrics:", error);
-//     });
-// }
+  Object.keys(attributes).forEach((key) => {
+    metric[metricType].dataPoints[0].attributes.push({
+      key: key,
+      value: { stringValue: attributes[key] },
+    });
+  });
+
+  if (metricType === "sum") {
+    metric[metricType].aggregationTemporality =
+      "AGGREGATION_TEMPORALITY_CUMULATIVE";
+    metric[metricType].isMonotonic = true;
+  }
+
+  return metric;
+}
+
+function sendToGrafana(metrics) {
+  const body = {
+    resourceMetrics: [
+      {
+        scopeMetrics: [
+          {
+            metrics,
+          },
+        ],
+      },
+    ],
+  };
+
+  fetch(`${config.metrics.endpointUrl}`, {
+    method: "POST",
+    body: JSON.stringify(body),
+    headers: {
+      Authorization: `Bearer ${config.metrics.accountId}:${config.metrics.apiKey}`,
+      "Content-Type": "application/json",
+    },
+  })
+    .then((response) => {
+      if (!response.ok) {
+        throw new Error(`HTTP status: ${response.status}`);
+      }
+    })
+    .catch((error) => {
+      console.error("Error pushing metrics:", error);
+    });
+}
 
 module.exports = {
   metrics: {
