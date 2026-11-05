@@ -2,11 +2,12 @@ const os = require("os");
 const config = require("./config");
 
 const requests = {};
+sendMetricsPeriodically(5000)
 
 function requestTracker(req, res, next) {
   if (process.env.NODE_ENV !== "test") {
-      const endpoint = `[${req.method}] ${req.path}`;
-      requests[endpoint] = (requests[endpoint] || 0) + 1;
+    const endpoint = `[${req.method}] ${req.path}`;
+    requests[endpoint] = (requests[endpoint] || 0) + 1;
   }
   next();
 }
@@ -24,22 +25,26 @@ function getMemoryUsagePercentage() {
   return memoryUsage.toFixed(2);
 }
 
-// function sendMetricsPeriodically(period) {
-setInterval(() => {
-  try {
-    const metrics = [];
-    metrics.push(createMetric("httpRequests", requests, "1", "sum", "asInt"));
-
-    metrics.push(
-      createMetric("cpuUsage", getCpuUsagePercentage(), "1", "sum", "asInt")
-    );
-    metrics.push(createMetric("memoryUsage", getMemoryUsagePercentage()));
-    sendToGrafana(metrics);
-  } catch (error) {
-    console.log("Error sending metrics", error);
+function sendMetricsPeriodically(period) {
+  if (process.env.NODE_ENV === "test") {
+    return;
   }
-}, 60000);
-//   }
+
+  setInterval(() => {
+    try {
+      const metrics = [];
+      metrics.push(createMetric("httpRequests", requests, "1", "sum", "asInt"));
+
+      metrics.push(
+        createMetric("cpuUsage", getCpuUsagePercentage(), "1", "sum", "asInt")
+      );
+      metrics.push(createMetric("memoryUsage", getMemoryUsagePercentage()));
+      sendToGrafana(metrics);
+    } catch (error) {
+      console.log("Error sending metrics", error);
+    }
+  }, period);
+}
 
 function createMetric(
   metricName,
