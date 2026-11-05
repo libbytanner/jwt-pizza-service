@@ -1,19 +1,15 @@
 const os = require("os");
-const config = require("./config");
-
-if (process.env.NODE_ENV === "test") {
-    return;
-  }
+// const config = require("./config");
 
 const requests = {};
 
 function requestTracker(req, res, next) {
-  const endpoint = `[${req.method}] ${req.path}`;
-  requests[endpoint] = (requests[endpoint] || 0) + 1;
+  if (process.env.NODE_ENV !== "test") {
+      const endpoint = `[${req.method}] ${req.path}`;
+      requests[endpoint] = (requests[endpoint] || 0) + 1;
+  }
   next();
 }
-
-
 
 function getCpuUsagePercentage() {
   const cpuUsage = os.loadavg()[0] / os.cpus().length;
@@ -29,94 +25,92 @@ function getMemoryUsagePercentage() {
 }
 
 // function sendMetricsPeriodically(period) {
-setInterval(() => {
-  try {
-    const metrics = [];
-    metrics.push(
-        createMetric("httpRequests", requests, "1", "sum", "asInt")
-      );
-  
-    metrics.push(
-      createMetric("cpuUsage", getCpuUsagePercentage(), "1", "sum", "asInt")
-    );
-    metrics.push(createMetric("memoryUsage", getMemoryUsagePercentage()));
-    sendToGrafana(metrics);
-  } catch (error) {
-    console.log("Error sending metrics", error);
-  }
-}, 60000);
+// setInterval(() => {
+//   try {
+//     const metrics = [];
+//     metrics.push(createMetric("httpRequests", requests, "1", "sum", "asInt"));
+
+//     metrics.push(
+//       createMetric("cpuUsage", getCpuUsagePercentage(), "1", "sum", "asInt")
+//     );
+//     metrics.push(createMetric("memoryUsage", getMemoryUsagePercentage()));
+//     sendToGrafana(metrics);
+//   } catch (error) {
+//     console.log("Error sending metrics", error);
+//   }
+// }, 60000);
 //   }
 
-function createMetric(
-  metricName,
-  metricValue,
-  metricUnit,
-  metricType,
-  valueType,
-  attributes
-) {
-  attributes = { ...attributes, source: config.metrics.source };
+// function createMetric(
+//   metricName,
+//   metricValue,
+//   metricUnit,
+//   metricType,
+//   valueType,
+//   attributes
+// ) {
+//   attributes = { ...attributes, source: config.metrics.source };
 
-  const metric = {
-    name: metricName,
-    unit: metricUnit,
-    [metricType]: {
-      dataPoints: [
-        {
-          [valueType]: metricValue,
-          timeUnixNano: Date.now() * 1000000,
-          attributes: [],
-        },
-      ],
-    },
-  };
+//   const metric = {
+//     name: metricName,
+//     unit: metricUnit,
+//     [metricType]: {
+//       dataPoints: [
+//         {
+//           [valueType]: metricValue,
+//           timeUnixNano: Date.now() * 1000000,
+//           attributes: [],
+//         },
+//       ],
+//     },
+//   };
 
-  Object.keys(attributes).forEach((key) => {
-    metric[metricType].dataPoints[0].attributes.push({
-      key: key,
-      value: { stringValue: attributes[key] },
-    });
-  });
+//   Object.keys(attributes).forEach((key) => {
+//     metric[metricType].dataPoints[0].attributes.push({
+//       key: key,
+//       value: { stringValue: attributes[key] },
+//     });
+//   });
 
-  if (metricType === "sum") {
-    metric[metricType].aggregationTemporality =
-      "AGGREGATION_TEMPORALITY_CUMULATIVE";
-    metric[metricType].isMonotonic = true;
-  }
+//   if (metricType === "sum") {
+//     metric[metricType].aggregationTemporality =
+//       "AGGREGATION_TEMPORALITY_CUMULATIVE";
+//     metric[metricType].isMonotonic = true;
+//   }
 
-  return metric;
-}
+//   return metric;
+// }
 
-function sendToGrafana(metrics) {
-  const body = {
-    resourceMetrics: [
-      {
-        scopeMetrics: [
-          {
-            metrics,
-          },
-        ],
-      },
-    ],
-  };
+// function sendToGrafana(metrics) {
+//   const body = {
+//     resourceMetrics: [
+//       {
+//         scopeMetrics: [
+//           {
+//             metrics,
+//           },
+//         ],
+//       },
+//     ],
+//   };
 
-  fetch(`${config.metrics.endpointUrl}`, {
-    method: "POST",
-    body: JSON.stringify(body),
-    headers: {
-      Authorization: `Bearer ${config.metrics.accountId}:${config.metrics.apiKey}`,
-      "Content-Type": "application/json",
-    },
-  })
-    .then((response) => {
-      if (!response.ok) {
-        throw new Error(`HTTP status: ${response.status}`);
-      }
-    })
-    .catch((error) => {
-      console.error("Error pushing metrics:", error);
-    });
-}
+//   fetch(`${config.metrics.endpointUrl}`, {
+//     method: "POST",
+//     body: JSON.stringify(body),
+//     headers: {
+//       Authorization: `Bearer ${config.metrics.accountId}:${config.metrics.apiKey}`,
+//       "Content-Type": "application/json",
+//     },
+//   })
+//     .then((response) => {
+//       if (!response.ok) {
+//         throw new Error(`HTTP status: ${response.status}`);
+//       }
+//     })
+//     .catch((error) => {
+//       console.error("Error pushing metrics:", error);
+//     });
+// }
 
 module.exports = {
   metrics: {
