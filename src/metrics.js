@@ -6,7 +6,7 @@ sendMetricsPeriodically(5000)
 
 function requestTracker(req, res, next) {
   if (process.env.NODE_ENV !== "test") {
-    const endpoint = `[${req.method}] ${req.path}`;
+    const endpoint = `${req.method}`.toLocaleLowerCase();
     requests[endpoint] = (requests[endpoint] || 0) + 1;
   }
   next();
@@ -33,12 +33,19 @@ function sendMetricsPeriodically(period) {
   setInterval(() => {
     try {
       const metrics = [];
-      metrics.push(createMetric("httpRequests", requests, "1", "sum", "asInt"));
-
+      let total = 0;
+      Object.keys(requests).forEach((endpoint) => {
+        total += requests[endpoint]
+        metrics.push(createMetric('requests', requests[endpoint], '1', 'sum', 'asInt', { endpoint }));
+      });
+      metrics.push(createMetric('total_requests', total, '1', 'sum', 'asInt', {endpoint: 'total'}))
+    
       metrics.push(
-        createMetric("cpuUsage", getCpuUsagePercentage(), "1", "sum", "asInt")
+        createMetric("cpu_usage", getCpuUsagePercentage(), "%", "gauge", "asDouble")
       );
-      metrics.push(createMetric("memoryUsage", getMemoryUsagePercentage()));
+      metrics.push(
+        createMetric("memory_usage", getMemoryUsagePercentage(), "%", "gauge", "asDouble")
+      );
       sendToGrafana(metrics);
     } catch (error) {
       console.log("Error sending metrics", error);
@@ -98,7 +105,6 @@ function sendToGrafana(metrics) {
       },
     ],
   };
-
   fetch(`${config.metrics.endpointUrl}`, {
     method: "POST",
     body: JSON.stringify(body),
