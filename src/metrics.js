@@ -2,12 +2,26 @@ const os = require("os");
 const config = require("./config");
 
 const requests = {};
-sendMetricsPeriodically(5000)
+const authRequests = {};
+sendMetricsPeriodically(5000);
 
 function requestTracker(req, res, next) {
   if (process.env.NODE_ENV !== "test") {
     const endpoint = `${req.method}`.toLocaleLowerCase();
     requests[endpoint] = (requests[endpoint] || 0) + 1;
+  }
+  next();
+}
+
+function authTracker(req, res, next) {
+  if (process.env.NODE_ENV !== "test") {
+    res.on("finish", () => {
+      const status = /^[23]/.test(String(res.statusCode))
+        ? "success"
+        : "failure";
+console.log(res.body)
+      authRequests[status] = (authRequests[status] || 0) + 1;
+    });
   }
   next();
 }
@@ -35,16 +49,49 @@ function sendMetricsPeriodically(period) {
       const metrics = [];
       let total = 0;
       Object.keys(requests).forEach((endpoint) => {
-        total += requests[endpoint]
-        metrics.push(createMetric('requests', requests[endpoint], '1', 'sum', 'asInt', { endpoint }));
+        total += requests[endpoint];
+        metrics.push(
+          createMetric("requests", requests[endpoint], "1", "sum", "asInt", {
+            endpoint,
+          })
+        );
       });
-      metrics.push(createMetric('total_requests', total, '1', 'sum', 'asInt', {endpoint: 'total'}))
-    
       metrics.push(
-        createMetric("cpu_usage", getCpuUsagePercentage(), "%", "gauge", "asDouble")
+        createMetric("all_http_requests", total, "1", "sum", "asInt", {
+          endpoint: "total",
+        })
+      );
+
+      Object.keys(authRequests).forEach((status) => {
+        metrics.push(
+          createMetric(
+            "authRequests",
+            authRequests[status],
+            "1",
+            "sum",
+            "asInt",
+            { status }
+          )
+        );
+      });
+
+      metrics.push(
+        createMetric(
+          "cpu_usage",
+          getCpuUsagePercentage(),
+          "%",
+          "gauge",
+          "asDouble"
+        )
       );
       metrics.push(
-        createMetric("memory_usage", getMemoryUsagePercentage(), "%", "gauge", "asDouble")
+        createMetric(
+          "memory_usage",
+          getMemoryUsagePercentage(),
+          "%",
+          "gauge",
+          "asDouble"
+        )
       );
       sendToGrafana(metrics);
     } catch (error) {
@@ -126,7 +173,6 @@ function sendToGrafana(metrics) {
 module.exports = {
   metrics: {
     requestTracker,
-    getCpuUsagePercentage,
-    getMemoryUsagePercentage,
+    authTracker,
   },
 };
