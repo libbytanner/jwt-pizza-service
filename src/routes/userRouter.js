@@ -70,6 +70,7 @@ userRouter.use(metrics.requestTracker);
 // getUser
 userRouter.get(
   "/me",
+  metrics.requestTracker,
   authRouter.authenticateToken,
   asyncHandler(async (req, res) => {
     res.json(req.user);
@@ -79,6 +80,7 @@ userRouter.get(
 // updateUser
 userRouter.put(
   "/:userId",
+  metrics.requestTracker,
   authRouter.authenticateToken,
   asyncHandler(async (req, res) => {
     const { name, email, password } = req.body;
@@ -97,6 +99,7 @@ userRouter.put(
 // deleteUser
 userRouter.delete(
   "/:userId",
+  metrics.requestTracker,
   authRouter.authenticateToken,
   asyncHandler(async (req, res) => {
     const userId = Number(req.params.userId);
@@ -108,8 +111,8 @@ userRouter.delete(
 // listUsers
 userRouter.get(
   "/",
+  metrics.requestTracker,
   authRouter.authenticateToken,
-
   asyncHandler(async (req, res) => {
     const user = req.user;
     if (!user.isRole(Role.Admin)) {

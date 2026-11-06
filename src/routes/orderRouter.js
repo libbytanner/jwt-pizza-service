@@ -48,6 +48,7 @@ orderRouter.use(metrics.requestTracker);
 // getMenu
 orderRouter.get(
   '/menu',
+  metrics.requestTracker,
   asyncHandler(async (req, res) => {
     res.send(await DB.getMenu());
   })
@@ -56,6 +57,7 @@ orderRouter.get(
 // addMenuItem
 orderRouter.put(
   '/menu',
+  metrics.requestTracker,
   authRouter.authenticateToken,
   asyncHandler(async (req, res) => {
     if (!req.user.isRole(Role.Admin)) {
@@ -71,6 +73,7 @@ orderRouter.put(
 // getOrders
 orderRouter.get(
   '/',
+  metrics.requestTracker,
   authRouter.authenticateToken,
   asyncHandler(async (req, res) => {
     res.json(await DB.getOrders(req.user, req.query.page));
@@ -80,6 +83,7 @@ orderRouter.get(
 // createOrder
 orderRouter.post(
   '/',
+  metrics.requestTracker,
   authRouter.authenticateToken,
   asyncHandler(async (req, res) => {
     const orderReq = req.body;
