@@ -19,7 +19,6 @@ function authTracker(req, res, next) {
       const status = /^[23]/.test(String(res.statusCode))
         ? "success"
         : "failure";
-console.log(res.body)
       authRequests[status] = (authRequests[status] || 0) + 1;
     });
   }
