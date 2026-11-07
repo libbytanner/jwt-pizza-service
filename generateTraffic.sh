@@ -28,6 +28,16 @@ login() {
   echo $token
 }
 
+register() {
+  response=$(curl -s -X POST "$host/api/auth" \
+    -d "{\"name\":\"$1\", \"email\":\"$2\", \"password\":\"$3\"}" \
+    -H 'Content-Type: application/json')
+
+  token=$(echo "$response" | jq -r '.token // empty')
+  echo "$token"
+}
+register "Diner" "d@jwt.com" "diner"
+
 # Simulate a user requesting the menu every 3 seconds
 while true; do
   result=$(execute_curl $host/api/order/menu)

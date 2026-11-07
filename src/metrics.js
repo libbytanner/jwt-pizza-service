@@ -38,6 +38,17 @@ function getMemoryUsagePercentage() {
   return memoryUsage.toFixed(2);
 }
 
+let pizzasSold = 0;
+let creationFailures = 0;
+
+function pizzaPurchase(success, latency, price) {
+  if (!success) {creationFailures++}
+  else {
+    pizzasSold++;
+  }
+}
+
+
 function sendMetricsPeriodically(period) {
   if (process.env.NODE_ENV === "test") {
     return;
@@ -92,6 +103,9 @@ function sendMetricsPeriodically(period) {
           "asDouble"
         )
       );
+      metrics.push(createMetric("pizzas_sold", pizzasSold, '1', 'sum', 'asInt', {result: 'pizzas purchased'}))
+      console.log(creationFailures)
+      metrics.push(createMetric("pizza_creation_failures", creationFailures, '1', 'sum', 'asInt', {result: 'failed creation'}))
       sendToGrafana(metrics);
     } catch (error) {
       console.log("Error sending metrics", error);
@@ -173,5 +187,6 @@ module.exports = {
   metrics: {
     requestTracker,
     authTracker,
+    pizzaPurchase,
   },
 };
