@@ -4,6 +4,7 @@ const config = require("./config");
 let requests = {};
 let authRequests = {};
 sendMetricsPeriodically(5000);
+reset();
 
 let activeUsers = 0;
 let totalLatency = 0;
@@ -75,12 +76,15 @@ function pizzaPurchase(success, latency, price) {
 }
 
 function reset() {
-  totalLatency = 0;
-  requestsCompleted = 0;
-  pizzaTotalLatency = 0;
-  pizzaOrders = 0
-  requests = {};
-  authRequests = {};
+
+  setInterval(() => {
+    totalLatency = 0;
+    requestsCompleted = 0;
+    pizzaTotalLatency = 0;
+    pizzaOrders = 0
+    requests = {};
+    authRequests = {};
+  }, 600000)
   }
 
 function sendMetricsPeriodically(period) {
@@ -160,7 +164,6 @@ function sendMetricsPeriodically(period) {
       );
       const latency = requestsCompleted > 0 ? totalLatency / requestsCompleted : 0
       metrics.push(createMetric("request_latency", latency, 'ms', 'gauge', 'asDouble'));
-      reset();
       sendToGrafana(metrics);
     } catch (error) {
       console.log("Error sending metrics", error);
