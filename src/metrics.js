@@ -153,7 +153,6 @@ function sendMetricsPeriodically(period) {
         )
       );
       metrics.push(createMetric("revenue", revenue, "1", "sum", "asDouble"));
-      console.log(pizzaOrders)
       const pizzaLatency = pizzaOrders > 0 ? pizzaTotalLatency / pizzaOrders : 0
       metrics.push(createMetric("pizza_latency", pizzaLatency, 'ms', 'gauge', 'asDouble'));
       metrics.push(
