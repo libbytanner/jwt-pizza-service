@@ -1,14 +1,33 @@
 const os = require("os");
 const config = require("./config");
 
-const requests = {};
-const authRequests = {};
+let requests = {};
+let authRequests = {};
 sendMetricsPeriodically(5000);
+
+let activeUsers = 0;
+let totalLatency = 0;
+let requestsCompleted = 0;
 
 function requestTracker(req, res, next) {
   if (process.env.NODE_ENV !== "test") {
+    const start = performance.now()
     const endpoint = `${req.method}`.toLocaleLowerCase();
     requests[endpoint] = (requests[endpoint] || 0) + 1;
+    res.on("finish", () => {
+      totalLatency += performance.now() - start
+      requestsCompleted++;
+      const success = /^[23]/.test(String(res.statusCode)) ? true : false;
+      if (success) {
+        if (req.originalUrl === "/api/auth") {
+          if (req.method === "DELETE") {
+            activeUsers--;
+          } else if (req.method === "POST" || req.method === "PUT") {
+            activeUsers++;
+          }
+        }
+      }
+    });
   }
   next();
 }
@@ -40,14 +59,29 @@ function getMemoryUsagePercentage() {
 
 let pizzasSold = 0;
 let creationFailures = 0;
+let revenue = 0;
+let pizzaTotalLatency = 0;
+let pizzaOrders = 0;
 
 function pizzaPurchase(success, latency, price) {
-  if (!success) {creationFailures++}
-  else {
+  pizzaTotalLatency += latency;
+  pizzaOrders++;
+  if (!success) {
+    creationFailures++;
+  } else {
     pizzasSold++;
+    revenue += price;
   }
 }
 
+function reset() {
+  totalLatency = 0;
+  requestsCompleted = 0;
+  pizzaTotalLatency = 0;
+  pizzaOrders = 0
+  requests = {};
+  authRequests = {};
+  }
 
 function sendMetricsPeriodically(period) {
   if (process.env.NODE_ENV === "test") {
@@ -103,9 +137,31 @@ function sendMetricsPeriodically(period) {
           "asDouble"
         )
       );
-      metrics.push(createMetric("pizzas_sold", pizzasSold, '1', 'sum', 'asInt', {result: 'pizzas purchased'}))
-      console.log(creationFailures)
-      metrics.push(createMetric("pizza_creation_failures", creationFailures, '1', 'sum', 'asInt', {result: 'failed creation'}))
+      metrics.push(
+        createMetric("pizzas_sold", pizzasSold, "1", "sum", "asInt", {
+          result: "pizzas purchased",
+        })
+      );
+      metrics.push(
+        createMetric(
+          "pizza_creation_failures",
+          creationFailures,
+          "1",
+          "sum",
+          "asInt",
+          { result: "failed creation" }
+        )
+      );
+      metrics.push(createMetric("revenue", revenue, "1", "sum", "asDouble"));
+      console.log(pizzaOrders)
+      const pizzaLatency = pizzaOrders > 0 ? pizzaTotalLatency / pizzaOrders : 0
+      metrics.push(createMetric("pizza_latency", pizzaLatency, 'ms', 'gauge', 'asDouble'));
+      metrics.push(
+        createMetric("active_users", activeUsers, "1", "gauge", "asInt")
+      );
+      const latency = requestsCompleted > 0 ? totalLatency / requestsCompleted : 0
+      metrics.push(createMetric("request_latency", latency, 'ms', 'gauge', 'asDouble'));
+      reset();
       sendToGrafana(metrics);
     } catch (error) {
       console.log("Error sending metrics", error);
