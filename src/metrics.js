@@ -76,6 +76,9 @@ function pizzaPurchase(success, latency, price) {
 }
 
 function reset() {
+  if (process.env.NODE_ENV === "test") {
+    return;
+  }
 
   setInterval(() => {
     totalLatency = 0;
