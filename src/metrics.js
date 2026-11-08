@@ -13,8 +13,8 @@ let requestsCompleted = 0;
 function requestTracker(req, res, next) {
   if (process.env.NODE_ENV !== "test") {
     const start = performance.now()
-    const endpoint = `${req.method}`.toLocaleLowerCase();
-    requests[endpoint] = (requests[endpoint] || 0) + 1;
+    const method = `${req.method}`.toLocaleLowerCase();
+    requests[method] = (requests[method] || 0) + 1;
     res.on("finish", () => {
       totalLatency += performance.now() - start
       requestsCompleted++;
@@ -85,7 +85,6 @@ function reset() {
     requestsCompleted = 0;
     pizzaTotalLatency = 0;
     pizzaOrders = 0
-    revenue = 0;
   }, 600000)
   }
 
@@ -98,17 +97,17 @@ function sendMetricsPeriodically(period) {
     try {
       const metrics = [];
       let total = 0;
-      Object.keys(requests).forEach((endpoint) => {
-        total += requests[endpoint];
+      Object.keys(requests).forEach((method) => {
+        total += requests[method];
         metrics.push(
-          createMetric("requests", requests[endpoint], "1", "sum", "asInt", {
-            endpoint,
+          createMetric("requests", requests[method], "1", "sum", "asInt", {
+            method,
           })
         );
       });
       metrics.push(
         createMetric("all_http_requests", total, "1", "sum", "asInt", {
-          endpoint: "total",
+          method: "total",
         })
       );
 
@@ -162,7 +161,7 @@ function sendMetricsPeriodically(period) {
       const pizzaLatency = pizzaOrders > 0 ? pizzaTotalLatency / pizzaOrders : 0
       metrics.push(createMetric("pizza_latency", pizzaLatency, 'ms', 'gauge', 'asDouble'));
       metrics.push(
-        createMetric("active_users", activeUsers.size, "1", "gauge", "asInt")
+        createMetric("active_users", activeUsers, "1", "gauge", "asInt")
       );
       const latency = requestsCompleted > 0 ? totalLatency / requestsCompleted : 0
       metrics.push(createMetric("request_latency", latency, 'ms', 'gauge', 'asDouble'));
