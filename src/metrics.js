@@ -85,8 +85,7 @@ function reset() {
     requestsCompleted = 0;
     pizzaTotalLatency = 0;
     pizzaOrders = 0
-    requests = {};
-    authRequests = {};
+    revenue = 0;
   }, 600000)
   }
 
@@ -163,7 +162,7 @@ function sendMetricsPeriodically(period) {
       const pizzaLatency = pizzaOrders > 0 ? pizzaTotalLatency / pizzaOrders : 0
       metrics.push(createMetric("pizza_latency", pizzaLatency, 'ms', 'gauge', 'asDouble'));
       metrics.push(
-        createMetric("active_users", activeUsers, "1", "gauge", "asInt")
+        createMetric("active_users", activeUsers.size, "1", "gauge", "asInt")
       );
       const latency = requestsCompleted > 0 ? totalLatency / requestsCompleted : 0
       metrics.push(createMetric("request_latency", latency, 'ms', 'gauge', 'asDouble'));
