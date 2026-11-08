@@ -101,7 +101,13 @@ test('delete franchise', async () => {
 })
 
 test('create store', async () => {
+  const testCreateStore = {franchiseId: testFranchise.id, name:"TEST STORE 2"}
+  const createRes = await request(app).post(`/api/franchise/${testFranchise.id}/store`).set('Authorization', `Bearer ${testUserAuthToken}`).send(testCreateStore);
+  expect(createRes.body.name).toBe(testCreateStore.name)
+})
+
+test('delete store', async () => {
   const testStore = {franchiseId: testFranchise.id, name:"TEST STORE"}
-  const createRes = await request(app).post(`/api/franchise/${testFranchise.id}/store`).set('Authorization', `Bearer ${testUserAuthToken}`).send(testStore);
-  expect(createRes.body.name).toBe(testStore.name)
+  const deleteRes = await request(app).delete(`/api/franchise/${testFranchise.id}/store/${testStore.id}`).set('Authorization', `Bearer ${testUserAuthToken}`).send(testStore);
+  expect(deleteRes.body.message).toBe("store deleted")
 })

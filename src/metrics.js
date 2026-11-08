@@ -3,7 +3,7 @@ const config = require("./config");
 
 let requests = {};
 let authRequests = {};
-sendMetricsPeriodically(5000);
+sendMetricsPeriodically(1000);
 reset();
 
 let activeUsers = 0;
