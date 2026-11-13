@@ -4,6 +4,7 @@ const config = require('../config.js');
 const { asyncHandler } = require('../endpointHelper.js');
 const { DB, Role } = require('../database/database.js');
 const {metrics} = require('./../metrics.js')
+const Logger = require('pizza-logger')
 
 const authRouter = express.Router();
 
@@ -32,7 +33,10 @@ authRouter.docs = [
   },
 ];
 
+const logger = new Logger(config);
+
 authRouter.use(metrics.requestTracker);
+authRouter.use(logger.httpLogger)
 
 async function setAuthUser(req, res, next) {
   const token = readAuthToken(req);

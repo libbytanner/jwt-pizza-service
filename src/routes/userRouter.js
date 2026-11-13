@@ -1,8 +1,12 @@
 const express = require("express");
 const { asyncHandler } = require("../endpointHelper.js");
+const config = require('../config.js');
 const { DB, Role } = require("../database/database.js");
 const { authRouter, setAuth } = require("./authRouter.js");
 const {metrics} = require('./../metrics.js')
+const Logger = require('pizza-logger')
+
+const logger = new Logger(config)
 
 const userRouter = express.Router();
 
@@ -66,6 +70,7 @@ userRouter.docs = [
 ];
 
 userRouter.use(metrics.requestTracker);
+userRouter.use(logger.httpLogger)
 
 // getUser
 userRouter.get(
