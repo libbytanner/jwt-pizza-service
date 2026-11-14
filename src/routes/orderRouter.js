@@ -44,8 +44,10 @@ orderRouter.docs = [
   },
 ];
 
-orderRouter.use(metrics.requestTracker);
-orderRouter.use(logger.httpLogger)
+if (process.env.NODE_ENV !== "test") {
+  orderRouter.use(metrics.requestTracker);
+  orderRouter.use(logger.httpLogger);
+}
 
 // getMenu
 orderRouter.get(

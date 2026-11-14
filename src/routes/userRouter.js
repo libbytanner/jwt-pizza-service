@@ -69,8 +69,10 @@ userRouter.docs = [
   },
 ];
 
-userRouter.use(metrics.requestTracker);
-userRouter.use(logger.httpLogger)
+if (process.env.NODE_ENV !== "test") {
+  userRouter.use(metrics.requestTracker);
+  userRouter.use(logger.httpLogger);
+}
 
 // getUser
 userRouter.get(

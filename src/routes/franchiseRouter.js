@@ -61,8 +61,10 @@ franchiseRouter.docs = [
   },
 ];
 
-franchiseRouter.use(metrics.requestTracker);
-franchiseRouter.use(logger.httpLogger)
+if (process.env.NODE_ENV !== "test") {
+  franchiseRouter.use(metrics.requestTracker);
+  franchiseRouter.use(logger.httpLogger);
+}
 // getFranchises
 franchiseRouter.get(
   '/',
