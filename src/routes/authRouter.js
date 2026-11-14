@@ -4,7 +4,7 @@ const config = require("../config.js");
 const { asyncHandler } = require("../endpointHelper.js");
 const { DB, Role } = require("../database/database.js");
 const { metrics } = require("./../metrics.js");
-const Logger = require("pizza-logger");
+const Logger = require("../logger.js");
 
 const authRouter = express.Router();
 
