@@ -28,11 +28,11 @@ class Logger {
     next();
   };
 
-  // dbLogger(query) {
-  //   if (process.env.NODE_ENV !== "test") {
-  //     this.log("info", "db", query);
-  //   }
-  // }
+  dbLogger(query) {
+    if (process.env.NODE_ENV !== "test") {
+      this.log("info", "db", query);
+    }
+  }
 
   // factoryLogger(orderInfo) {
   //   if (process.env.NODE_ENV !== "test") {
