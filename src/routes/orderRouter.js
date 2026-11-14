@@ -4,7 +4,7 @@ const { Role, DB } = require('../database/database.js');
 const { authRouter } = require('./authRouter.js');
 const { asyncHandler, StatusCodeError } = require('../endpointHelper.js');
 const {metrics} = require('./../metrics.js')
-const Logger = require('pizza-logger')
+const Logger = require('../logger.js')
 
 const logger = new Logger(config)
 const orderRouter = express.Router();
@@ -84,6 +84,7 @@ orderRouter.get(
 // createOrder
 orderRouter.post(
   '/',
+
   authRouter.authenticateToken,
   asyncHandler(async (req, res) => {
     const start = performance.now();
@@ -95,6 +96,7 @@ orderRouter.post(
       body: JSON.stringify({ diner: { id: req.user.id, name: req.user.name, email: req.user.email }, order }),
     });
     const j = await r.json();
+    logger.factoryLogger({ user: req.user.email, reqBody: JSON.stringify({ diner: { id: req.user.id, name: req.user.name, email: req.user.email }, order }), resBody: JSON.stringify(j) })
     const end = performance.now();
     if (r.ok) {
       orderReq.items.forEach(item => metrics.pizzaPurchase(true, end - start, item.price))

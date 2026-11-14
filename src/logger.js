@@ -34,11 +34,11 @@ class Logger {
     }
   }
 
-  // factoryLogger(orderInfo) {
-  //   if (process.env.NODE_ENV !== "test") {
-  //     this.log("info", "factory", orderInfo);
-  //   }
-  // }
+  factoryLogger(orderInfo) {
+    if (process.env.NODE_ENV !== "test") {
+      this.log("info", "factory", orderInfo);
+    }
+  }
 
   // unhandledErrorLogger(err) {
   //   if (process.env.NODE_ENV === "test") {
