@@ -7,5 +7,10 @@
     }
   },
   "setupFilesAfterEnv": ["<rootDir>/src/tests/setup.js"],
-  "maxWorkers": 1
+  "maxWorkers": 1,
+    "coveragePathIgnorePatterns": [
+    "/node_modules/",
+    "<rootDir>/src/metrics.js",
+    "<rootDir>/src/logger.js"]
+
 }
