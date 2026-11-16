@@ -30,7 +30,8 @@ class Logger {
 
   dbLogger(query) {
     if (process.env.NODE_ENV !== "test") {
-      this.log("info", "db", query);
+      const log = {query}
+      this.log("info", "db", log);
     }
   }
 
