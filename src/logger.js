@@ -40,16 +40,16 @@ class Logger {
     }
   }
 
-  // unhandledErrorLogger(err) {
-  //   if (process.env.NODE_ENV === "test") {
-  //     return;
-  //   }
+  unhandledErrorLogger(err) {
+    if (process.env.NODE_ENV === "test") {
+      return;
+    }
 
-  //   this.log("error", "unhandledError", {
-  //     message: err.message,
-  //     status: err.statusCode,
-  //   });
-  // }
+    this.log("error", "unhandledError", {
+      message: err.message,
+      status: err.statusCode,
+    });
+  }
 
   log(level, type, logData) {
     if (process.env.NODE_ENV === "test") {
