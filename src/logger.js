@@ -48,7 +48,7 @@ class Logger {
 
     this.log("error", "unhandledError", {
       message: err.message,
-      status: err.statusCode,
+      statusCode: err.statusCode,
     });
   }
 
